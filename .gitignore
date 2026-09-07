@@ -1,0 +1,28 @@
+# PostgreSQL backup files
+*.dump
+*.backup
+*.tar
+*.gz
+
+# Logs
+*.log
+
+# Environment / credentials
+.env
+.env.*
+credentials.txt
+passwords.txt
+
+# Certificates and private keys
+*.key
+*.pem
+*.p12
+
+# PostgreSQL runtime/data
+pgdata/
+backup-data/
+
+# OS/editor files
+.DS_Store
+*.swp
+*.tmp
