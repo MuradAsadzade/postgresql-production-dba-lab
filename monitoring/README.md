@@ -141,3 +141,98 @@ STATUS: HEALTHY
 ## Result
 
 The monitoring solution successfully detects both normal replication operation and standby failures without requiring PostgreSQL superuser privileges.
+
+
+## Production-Style Deployment
+
+The monitoring solution separates source code from runtime deployment.
+
+```text
+Source repository:
+/home/murad/postgresql-production-dba-lab/
+
+Runtime script:
+/opt/pgmonitor/replication_monitor.sh
+
+Log directory:
+/var/log/pgmonitor/
+```
+
+A dedicated Linux account is used to run monitoring jobs:
+
+```text
+pgmonitor
+```
+
+This keeps monitoring automation separate from both the PostgreSQL service account and the Git repository owner.
+
+The monitoring architecture is:
+
+```text
+Linux pgmonitor user
+        |
+        v
+replication_monitor.sh
+        |
+        v
+PostgreSQL monitoring_user
+        |
+        v
+monitoring_role
+        |
+        v
+pg_monitor
+```
+
+## Cron Automation
+
+The replication health check runs every minute using the `pgmonitor` user's crontab.
+
+```text
+* * * * * /bin/flock -n /var/lock/pgmonitor/replication_monitor.lock /opt/pgmonitor/replication_monitor.sh >> /var/log/pgmonitor/replication_monitor.log 2>&1
+```
+
+`flock` prevents multiple copies of the monitoring script from running at the same time.
+
+Monitoring output is written to:
+
+```text
+/var/log/pgmonitor/replication_monitor.log
+```
+
+## Log Rotation
+
+Log rotation is configured using:
+
+```text
+/etc/logrotate.d/pgmonitor
+```
+
+Configuration:
+
+```text
+/var/log/pgmonitor/replication_monitor.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 pgmonitor pgmonitor
+    su pgmonitor pgmonitor
+}
+```
+
+This provides:
+
+- Daily log rotation
+- 14 days of retained logs
+- Compression of older logs
+- Controlled log file permissions
+- Automatic recreation of the active log file
+
+On Oracle Linux 8, logrotate is executed automatically through:
+
+```text
+/etc/cron.daily/logrotate
+```
