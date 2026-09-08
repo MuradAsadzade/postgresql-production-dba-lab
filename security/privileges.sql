@@ -1,0 +1,43 @@
+-- PostgreSQL Production DBA Lab
+-- Role-Based Access Control privileges
+
+-- READ ONLY ROLE
+GRANT CONNECT ON DATABASE banking_db TO app_readonly;
+GRANT USAGE ON SCHEMA banking TO app_readonly;
+
+GRANT SELECT
+ON ALL TABLES IN SCHEMA banking
+TO app_readonly;
+
+
+-- READ / WRITE ROLE
+GRANT CONNECT ON DATABASE banking_db TO app_readwrite;
+GRANT USAGE ON SCHEMA banking TO app_readwrite;
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON ALL TABLES IN SCHEMA banking
+TO app_readwrite;
+
+GRANT USAGE, SELECT
+ON ALL SEQUENCES IN SCHEMA banking
+TO app_readwrite;
+
+
+-- DEFAULT PRIVILEGES FOR FUTURE OBJECTS
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA banking
+GRANT SELECT
+ON TABLES TO app_readonly;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA banking
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON TABLES TO app_readwrite;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA banking
+GRANT USAGE, SELECT
+ON SEQUENCES TO app_readwrite;
+
+
+-- MONITORING ROLE
+GRANT pg_monitor TO monitoring_role;
+GRANT CONNECT ON DATABASE banking_db TO monitoring_role;
